@@ -1,6 +1,5 @@
 # sales-analytics-dashboard
 Interactive sales data analytics platform tracking regional KPIs, growth trends, and pipeline metrics.
-# Enterprise Sales Intelligence Dashboard
 
 # 📊 Sales Analytics Dashboard (FY 2025)
 
