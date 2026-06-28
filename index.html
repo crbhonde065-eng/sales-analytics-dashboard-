@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sales Analytics Dashboard 2025</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #242838;
+    --border: #2e3348;
+    --accent: #6c63ff;
+    --accent2: #00d4aa;
+    --accent3: #ff6584;
+    --accent4: #ffa726;
+    --text: #e8eaf6;
+    --muted: #7986cb;
+    --green: #00d4aa;
+    --red: #ff6584;
+    --yellow: #ffa726;
+    --blue: #6c63ff;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    font-size: 14px;
+  }
+
+  /* HEADER */
+  .header {
+    background: linear-gradient(135deg, #1a1d27 0%, #0f1117 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 20px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .header-left h1 {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    background: linear-gradient(135deg, #6c63ff, #00d4aa);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .header-left p {
+    color: var(--muted);
+    font-size: 12px;
+    margin-top: 2px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .header-right {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+
+  /* FILTERS */
+  .filters {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 32px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .filter-label {
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-right: 4px;
+  }
+  select {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 7px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  select:hover, select:focus { border-color: var(--accent); }
+  .btn-reset {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 7px 14px;
+    border-radius: 8px;
+    font-size: 12px;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    transition: all 0.2s;
+  }
+  .btn-reset:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* MAIN */
+  .main { padding: 24px 32px; }
+
+  /* KPI CARDS */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .kpi-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .kpi-card:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(108,99,255,0.15); }
+  .kpi-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--card-accent, var(--accent));
+    border-radius: 14px 14px 0 0;
+  }
+  .kpi-card:nth-child(1) { --card-accent: #6c63ff; }
+  .kpi-card:nth-child(2) { --card-accent: #00d4aa; }
+  .kpi-card:nth-child(3) { --card-accent: #ffa726; }
+  .kpi-card:nth-child(4) { --card-accent: #ff6584; }
+  .kpi-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  .kpi-value {
+    font-size: 28px;
+    font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: -1px;
+    line-height: 1;
+  }
+  .kpi-sub {
+    margin-top: 8px;
+    font-size: 12px;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .kpi-badge {
+    font-size: 11px;
+    padding: 2px 7px;
+    border-radius: 20px;
+    font-weight: 600;
+  }
+  .badge-green { background: rgba(0,212,170,0.15); color: #00d4aa; }
+  .badge-red { background: rgba(255,101,132,0.15); color: #ff6584; }
+
+  /* CHART GRIDS */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+  .grid-1 { margin-bottom: 16px; }
+  .col-2-1 { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; margin-bottom: 16px; }
+  .col-1-2 { display: grid; grid-template-columns: 1fr 2fr; gap: 16px; margin-bottom: 16px; }
+
+  /* CHART CARDS */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px;
+  }
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+  .card-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .card-sub {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+  .chart-wrap { position: relative; }
+
+  /* TABLE */
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead th {
+    background: var(--surface2);
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    padding: 10px 14px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  tbody tr { border-bottom: 1px solid rgba(46,51,72,0.5); transition: background 0.15s; }
+  tbody tr:hover { background: var(--surface2); }
+  tbody td { padding: 11px 14px; color: var(--text); }
+  .tag {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 500;
+  }
+  .tag-elec { background: rgba(108,99,255,0.15); color: #6c63ff; }
+  .tag-furn { background: rgba(255,167,38,0.15); color: #ffa726; }
+  .tag-clot { background: rgba(0,212,170,0.15); color: #00d4aa; }
+
+  /* PROGRESS BARS */
+  .progress-row { margin-bottom: 14px; }
+  .progress-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+  .progress-label { font-size: 13px; color: var(--text); font-weight: 500; }
+  .progress-val { font-size: 12px; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
+  .progress-bar { height: 6px; background: var(--surface2); border-radius: 3px; overflow: hidden; }
+  .progress-fill { height: 100%; border-radius: 3px; transition: width 0.8s ease; }
+
+  /* MINI STATS */
+  .mini-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .mini-stat {
+    background: var(--surface2);
+    border-radius: 10px;
+    padding: 14px;
+    text-align: center;
+  }
+  .mini-stat-val { font-size: 20px; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+  .mini-stat-lbl { font-size: 11px; color: var(--muted); margin-top: 4px; }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--surface); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  /* LEGEND */
+  .legend { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 12px; justify-content: center; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+
+  /* Rank badge */
+  .rank { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; background: var(--surface2); font-size: 11px; font-weight: 700; color: var(--muted); }
+  .rank-1 { background: rgba(255,167,38,0.15); color: #ffa726; }
+  .rank-2 { background: rgba(108,99,255,0.15); color: #6c63ff; }
+  .rank-3 { background: rgba(0,212,170,0.12); color: #00d4aa; }
+
+  @media (max-width: 1100px) {
+    .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+    .grid-2, .col-2-1, .col-1-2 { grid-template-columns: 1fr; }
+    .grid-3 { grid-template-columns: 1fr 1fr; }
+    .main { padding: 16px; }
+    .header { padding: 16px; }
+    .filters { padding: 12px 16px; }
+  }
+  @media (max-width: 600px) {
+    .kpi-grid { grid-template-columns: 1fr; }
+    .grid-3 { grid-template-columns: 1fr; }
+    .mini-grid { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <h1>📊 Sales Analytics Dashboard</h1>
+    <p>FY 2025 · Jan–Dec · India Operations</p>
+  </div>
+  <div class="header-right">
+    <span id="last-updated" style="font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;"></span>
+  </div>
+</div>
+
+<div class="filters">
+  <span class="filter-label">Filter by</span>
+  <select id="f-month" onchange="applyFilters()">
+    <option value="">All Months</option>
+    <option value="2025-01">January</option>
+    <option value="2025-02">February</option>
+    <option value="2025-03">March</option>
+    <option value="2025-04">April</option>
+    <option value="2025-05">May</option>
+    <option value="2025-06">June</option>
+    <option value="2025-07">July</option>
+    <option value="2025-08">August</option>
+    <option value="2025-09">September</option>
+    <option value="2025-10">October</option>
+    <option value="2025-11">November</option>
+    <option value="2025-12">December</option>
+  </select>
+  <select id="f-category" onchange="applyFilters()">
+    <option value="">All Categories</option>
+    <option value="Electronics">Electronics</option>
+    <option value="Furniture">Furniture</option>
+    <option value="Clothing">Clothing</option>
+  </select>
+  <select id="f-region" onchange="applyFilters()">
+    <option value="">All Regions</option>
+    <option value="North">North</option>
+    <option value="South">South</option>
+    <option value="West">West</option>
+  </select>
+  <select id="f-rep" onchange="applyFilters()">
+    <option value="">All Sales Reps</option>
+    <option value="Ajay">Ajay</option>
+    <option value="Pooja">Pooja</option>
+    <option value="Rahul">Rahul</option>
+    <option value="Sneha">Sneha</option>
+  </select>
+  <select id="f-city" onchange="applyFilters()">
+    <option value="">All Cities</option>
+    <option value="Bangalore">Bangalore</option>
+    <option value="Delhi">Delhi</option>
+    <option value="Hyderabad">Hyderabad</option>
+    <option value="Mumbai">Mumbai</option>
+    <option value="Pune">Pune</option>
+  </select>
+  <button class="btn-reset" onclick="resetFilters()">↺ Reset</button>
+  <span id="filter-count" style="font-size:11px;color:var(--muted);margin-left:4px;"></span>
+</div>
+
+<div class="main">
+
+  <!-- KPIs -->
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-label">Total Revenue</div>
+      <div class="kpi-value" id="kpi-sales" style="color:#6c63ff">₹0</div>
+      <div class="kpi-sub"><span class="kpi-badge badge-green" id="kpi-sales-badge">↑ 0%</span> vs prior period</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Total Profit</div>
+      <div class="kpi-value" id="kpi-profit" style="color:#00d4aa">₹0</div>
+      <div class="kpi-sub"><span class="kpi-badge badge-green" id="kpi-margin-badge">0%</span> profit margin</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Total Orders</div>
+      <div class="kpi-value" id="kpi-orders" style="color:#ffa726">0</div>
+      <div class="kpi-sub"><span id="kpi-orders-sub" style="color:var(--muted)">₹0 avg order value</span></div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Units Sold</div>
+      <div class="kpi-value" id="kpi-units" style="color:#ff6584">0</div>
+      <div class="kpi-sub"><span id="kpi-units-sub" style="color:var(--muted)">0 avg per order</span></div>
+    </div>
+  </div>
+
+  <!-- Row 1: Monthly trend (wide) -->
+  <div class="grid-1">
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">Monthly Revenue by Category</div>
+          <div class="card-sub">Stacked bar — Electronics · Furniture · Clothing</div>
+        </div>
+      </div>
+      <div class="chart-wrap" style="height:240px">
+        <canvas id="c-monthly"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Row 2: Sales vs Profit trend line + Donut category -->
+  <div class="col-2-1">
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">Revenue vs Profit Trend</div>
+          <div class="card-sub">Monthly comparison</div>
+        </div>
+      </div>
+      <div class="chart-wrap" style="height:220px">
+        <canvas id="c-trend"></canvas>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">Category Mix</div>
+          <div class="card-sub">By revenue share</div>
+        </div>
+      </div>
+      <div class="chart-wrap" style="height:180px">
+        <canvas id="c-category"></canvas>
+      </div>
+      <div class="legend" id="cat-legend"></div>
+    </div>
+  </div>
+
+  <!-- Row 3: Region bar + City + Payment -->
+  <div class="grid-3">
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">Revenue by Region</div>
+          <div class="card-sub">North · South · West</div>
+        </div>
+      </div>
+      <div class="chart-wrap" style="height:180px">
+        <canvas id="c-region"></canvas>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">Top Cities</div>
+          <div class="card-sub">By total revenue</div>
+        </div>
+      </div>
+      <div class="chart-wrap" style="height:180px">
+        <canvas id="c-city"></canvas>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">Payment Methods</div>
+          <div class="card-sub">Order distribution</div>
+        </div>
+      </div>
+      <div class="chart-wrap" style="height:180px">
+        <canvas id="c-payment"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Row 4: Sales Reps performance + Profit by Product -->
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">Sales Rep Performance</div>
+          <div class="card-sub">Revenue · Profit · Orders</div>
+        </div>
+      </div>
+      <div id="rep-bars"></div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">Top Products by Revenue</div>
+          <div class="card-sub">Sorted by total sales</div>
+        </div>
+      </div>
+      <div class="chart-wrap" style="height:220px">
+        <canvas id="c-products"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Row 5: Discount analysis + Transactions table -->
+  <div class="col-1-2">
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">Discount Impact</div>
+          <div class="card-sub">Orders by discount tier</div>
+        </div>
+      </div>
+      <div class="chart-wrap" style="height:200px">
+        <canvas id="c-discount"></canvas>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">Recent Transactions</div>
+          <div class="card-sub">Latest 10 orders</div>
+        </div>
+        <span id="table-count" style="font-size:11px;color:var(--muted);"></span>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Order</th>
+              <th>Date</th>
+              <th>Customer</th>
+              <th>Category</th>
+              <th>City</th>
+              <th>Rep</th>
+              <th>Revenue</th>
+              <th>Profit</th>
+            </tr>
+          </thead>
+          <tbody id="tx-table"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ========== RAW DATA ==========
+const RAW = [
+  {o:"1001",d:"2025-01-01",cust:"Neha Patil",city:"Hyderabad",region:"South",cat:"Electronics",prod:"Headphones",rep:"Sneha",units:4,price:20401,sales:73443.6,pay:"Credit Card",disc:10,profit:21019.15},
+  {o:"1002",d:"2025-01-01",cust:"Amit Shah",city:"Delhi",region:"North",cat:"Electronics",prod:"Headphones",rep:"Ajay",units:4,price:17480,sales:66424,pay:"Cash",disc:5,profit:15368.62},
+  {o:"1003",d:"2025-01-01",cust:"Karan Verma",city:"Hyderabad",region:"South",cat:"Furniture",prod:"Sofa",rep:"Rahul",units:1,price:20603,sales:18542.7,pay:"Debit Card",disc:10,profit:3595.24},
+  {o:"1004",d:"2025-01-02",cust:"Priya Sharma",city:"Hyderabad",region:"South",cat:"Clothing",prod:"T-Shirt",rep:"Rahul",units:2,price:35787,sales:71574,pay:"Debit Card",disc:0,profit:10999.85},
+  {o:"1005",d:"2025-01-02",cust:"Amit Shah",city:"Mumbai",region:"West",cat:"Furniture",prod:"Sofa",rep:"Pooja",units:5,price:41396,sales:206980,pay:"Cash",disc:0,profit:34168.81},
+  {o:"1006",d:"2025-01-03",cust:"Priya Sharma",city:"Hyderabad",region:"South",cat:"Furniture",prod:"Chair",rep:"Ajay",units:5,price:31592,sales:157960,pay:"Debit Card",disc:0,profit:21390.53},
+  {o:"1007",d:"2025-01-03",cust:"Neha Patil",city:"Pune",region:"West",cat:"Electronics",prod:"Headphones",rep:"Rahul",units:3,price:37915,sales:113745,pay:"Cash",disc:0,profit:30022.96},
+  {o:"1008",d:"2025-01-04",cust:"Rohit Mehta",city:"Mumbai",region:"West",cat:"Electronics",prod:"Headphones",rep:"Rahul",units:1,price:38859,sales:36916.05,pay:"UPI",disc:5,profit:6036.85},
+  {o:"1009",d:"2025-01-04",cust:"Karan Verma",city:"Mumbai",region:"West",cat:"Clothing",prod:"Jeans",rep:"Sneha",units:3,price:26304,sales:71020.8,pay:"UPI",disc:10,profit:8473.11},
+  {o:"1010",d:"2025-01-04",cust:"Amit Shah",city:"Mumbai",region:"West",cat:"Clothing",prod:"Jacket",rep:"Rahul",units:5,price:15994,sales:67974.5,pay:"Debit Card",disc:15,profit:12850.43},
+  {o:"1011",d:"2025-01-05",cust:"Neha Patil",city:"Mumbai",region:"West",cat:"Electronics",prod:"Headphones",rep:"Ajay",units:3,price:20557,sales:58587.45,pay:"Debit Card",disc:5,profit:6595.92},
+  {o:"1012",d:"2025-01-05",cust:"Priya Sharma",city:"Hyderabad",region:"South",cat:"Electronics",prod:"Laptop",rep:"Ajay",units:1,price:1926,sales:1829.7,pay:"Credit Card",disc:5,profit:199.21},
+  {o:"1013",d:"2025-01-05",cust:"Neha Patil",city:"Bangalore",region:"South",cat:"Electronics",prod:"Mobile",rep:"Pooja",units:4,price:21124,sales:80271.2,pay:"Cash",disc:5,profit:15340.73},
+  {o:"1014",d:"2025-01-05",cust:"Rohit Mehta",city:"Mumbai",region:"West",cat:"Furniture",prod:"Sofa",rep:"Sneha",units:4,price:35983,sales:129538.8,pay:"Credit Card",disc:10,profit:21019.95},
+  {o:"1015",d:"2025-01-06",cust:"Priya Sharma",city:"Mumbai",region:"West",cat:"Electronics",prod:"Headphones",rep:"Ajay",units:2,price:41417,sales:82834,pay:"Credit Card",disc:0,profit:13758.71},
+  {o:"1016",d:"2025-01-06",cust:"Karan Verma",city:"Pune",region:"West",cat:"Furniture",prod:"Table",rep:"Rahul",units:1,price:12194,sales:12194,pay:"UPI",disc:0,profit:2550.47},
+  {o:"1017",d:"2025-01-06",cust:"Rohit Mehta",city:"Delhi",region:"North",cat:"Clothing",prod:"Jeans",rep:"Sneha",units:5,price:31519,sales:141835.5,pay:"Credit Card",disc:10,profit:21722.95},
+  {o:"1018",d:"2025-01-06",cust:"Amit Shah",city:"Delhi",region:"North",cat:"Furniture",prod:"Table",rep:"Rahul",units:5,price:8468,sales:42340,pay:"Cash",disc:0,profit:5531.83},
+  {o:"1019",d:"2025-01-06",cust:"Neha Patil",city:"Hyderabad",region:"South",cat:"Furniture",prod:"Sofa",rep:"Rahul",units:2,price:4252,sales:8504,pay:"Credit Card",disc:0,profit:1015.88},
+  {o:"1020",d:"2025-01-07",cust:"Rohit Mehta",city:"Mumbai",region:"West",cat:"Furniture",prod:"Sofa",rep:"Pooja",units:3,price:7401,sales:21092.85,pay:"UPI",disc:5,profit:3948.81},
+  {o:"1021",d:"2025-01-07",cust:"Neha Patil",city:"Mumbai",region:"West",cat:"Furniture",prod:"Sofa",rep:"Rahul",units:5,price:27235,sales:122557.5,pay:"Debit Card",disc:10,profit:22166.05},
+  {o:"1022",d:"2025-01-07",cust:"Amit Shah",city:"Hyderabad",region:"South",cat:"Clothing",prod:"Jacket",rep:"Ajay",units:3,price:29600,sales:84360,pay:"Debit Card",disc:5,profit:18150.33},
+  {o:"1023",d:"2025-01-08",cust:"Karan Verma",city:"Pune",region:"West",cat:"Furniture",prod:"Sofa",rep:"Sneha",units:4,price:3674,sales:12491.6,pay:"Credit Card",disc:15,profit:2919.66},
+  {o:"1024",d:"2025-01-08",cust:"Neha Patil",city:"Hyderabad",region:"South",cat:"Electronics",prod:"Headphones",rep:"Ajay",units:1,price:43622,sales:41440.9,pay:"Debit Card",disc:5,profit:4574.51},
+  {o:"1025",d:"2025-01-08",cust:"Priya Sharma",city:"Mumbai",region:"West",cat:"Clothing",prod:"T-Shirt",rep:"Rahul",units:4,price:21019,sales:79872.2,pay:"UPI",disc:5,profit:13347.19},
+  {o:"1026",d:"2025-01-09",cust:"Rohit Mehta",city:"Bangalore",region:"South",cat:"Electronics",prod:"Headphones",rep:"Sneha",units:5,price:5346,sales:22720.5,pay:"Credit Card",disc:15,profit:2603.14},
+  {o:"1027",d:"2025-01-09",cust:"Karan Verma",city:"Delhi",region:"North",cat:"Clothing",prod:"Jacket",rep:"Sneha",units:1,price:38705,sales:36769.75,pay:"Credit Card",disc:5,profit:8869.92},
+  {o:"1028",d:"2025-01-09",cust:"Neha Patil",city:"Pune",region:"West",cat:"Furniture",prod:"Table",rep:"Rahul",units:5,price:9311,sales:41899.5,pay:"Credit Card",disc:10,profit:4666.68},
+  {o:"1029",d:"2025-01-09",cust:"Neha Patil",city:"Mumbai",region:"West",cat:"Furniture",prod:"Sofa",rep:"Rahul",units:2,price:30398,sales:54716.4,pay:"Cash",disc:10,profit:12834.94},
+  {o:"1030",d:"2025-01-09",cust:"Amit Shah",city:"Delhi",region:"North",cat:"Electronics",prod:"Mobile",rep:"Ajay",units:3,price:48575,sales:131152.5,pay:"Credit Card",disc:10,profit:13842.6},
+];
+
+// Full aggregated data (pre-computed from Python)
+const FULL = {
+  monthly: {
+    labels: ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],
+    keys: ["2025-01","2025-02","2025-03","2025-04","2025-05","2025-06","2025-07","2025-08","2025-09","2025-10","2025-11","2025-12"],
+    sales: [8230898.85,6285791.30,8158549.85,7177984.05,6210795.30,7259682.30,9432089.35,9116986.70,7403277.30,9315625.15,7558035.85,7153473.60],
+    profit: [1554667.93,1291060.17,1609965.18,1388411.08,1240932.36,1486745.51,1866301.56,1926541.60,1424073.16,1927927.93,1510867.72,1433083.91],
+    orders: [108,102,110,100,101,105,120,109,105,112,110,105],
+    catCloth: [2282811.75,1849175.30,2325846.70,2006892.50,1489530.50,3136767.00,2527124.75,3299181.65,2293053.90,3612867.70,2638187.25,2719619.10],
+    catElec: [3143361.90,2481644.95,3137157.45,2862057.35,1735229.70,2456194.35,3617778.75,2559939.75,2689818.15,2447772.25,2344452.70,2169801.75],
+    catFurn: [2804725.20,1954971.05,2695545.70,2309034.20,2986035.10,1666720.95,3287185.85,3257865.30,2420405.25,3254985.20,2575395.90,2264052.75],
+  },
+  category: { labels:["Electronics","Furniture","Clothing"], sales:[31645209.05,31476922.45,30181058.10], profit:[6362324.80,6344279.80,5953973.51], orders:[428,443,416] },
+  region: { labels:["South","West","North"], sales:[38575509.15,36402996.60,18324683.85], profit:[7600223.33,7368788.24,3691566.54] },
+  city: { labels:["Bangalore","Pune","Delhi","Mumbai","Hyderabad"], sales:[21409479.30,18728826.85,18324683.85,17674169.75,17166029.85], profit:[4302267.08,3797574.83,3691566.54,3571213.41,3297956.25] },
+  rep: {
+    labels:["Ajay","Rahul","Sneha","Pooja"],
+    sales:[25775669.35,24295450.45,21670714.80,21561355.00],
+    profit:[5074993.81,4970469.53,4307905.59,4307209.18],
+    orders:[339,326,306,316]
+  },
+  payment: { labels:["Cash","Debit Card","UPI","Credit Card"], orders:[339,328,316,304], sales:[24744884.20,23742031.90,22576207.20,22240066.30] },
+  products: { labels:["Headphones","Sofa","Table","Chair","T-Shirt","Jeans","Jacket","Laptop","Mobile"], sales:[12577861.25,10667438.85,10441145.25,10368338.35,10145823.95,10105013.10,9930221.05,9576056.10,9491291.70] },
+  discount: { labels:["0%","5%","10%","15%"], orders:[370,341,336,240] },
+  totalSales: 93303189.60,
+  totalProfit: 18660578.11,
+  totalOrders: 1287,
+  totalUnits: 3774,
+};
+
+// Charts registry
+const charts = {};
+
+// Color palettes
+const COLS = {
+  elec: "#6c63ff", furn: "#ffa726", clot: "#00d4aa",
+  north: "#ff6584", south: "#6c63ff", west: "#00d4aa",
+  rep: ["#6c63ff","#00d4aa","#ffa726","#ff6584"],
+  city: ["#6c63ff","#00d4aa","#ffa726","#ff6584","#a78bfa"],
+  pay: ["#6c63ff","#00d4aa","#ffa726","#ff6584"],
+  cat: ["#6c63ff","#ffa726","#00d4aa"],
+};
+
+// Formatting helpers
+const fmt = n => "₹" + (n>=1e7 ? (n/1e7).toFixed(2)+"Cr" : n>=1e5 ? (n/1e5).toFixed(2)+"L" : n>=1e3 ? (n/1e3).toFixed(1)+"K" : n.toFixed(0));
+const fmtFull = n => "₹" + n.toLocaleString("en-IN", {maximumFractionDigits:0});
+
+// Chart defaults
+Chart.defaults.color = "#7986cb";
+Chart.defaults.borderColor = "#2e3348";
+Chart.defaults.font.family = "Inter";
+
+function makeChart(id, config) {
+  const ctx = document.getElementById(id);
+  if (!ctx) return;
+  if (charts[id]) charts[id].destroy();
+  charts[id] = new Chart(ctx, config);
+  return charts[id];
+}
+
+function initCharts(d) {
+  // Monthly stacked bar
+  makeChart("c-monthly", {
+    type: "bar",
+    data: {
+      labels: d.monthly.labels,
+      datasets: [
+        { label:"Electronics", data: d.monthly.catElec, backgroundColor: "rgba(108,99,255,0.85)", borderRadius: 3, stack: "s" },
+        { label:"Furniture", data: d.monthly.catFurn, backgroundColor: "rgba(255,167,38,0.85)", borderRadius: 3, stack: "s" },
+        { label:"Clothing", data: d.monthly.catCloth, backgroundColor: "rgba(0,212,170,0.85)", borderRadius: 3, stack: "s" },
+      ]
+    },
+    options: { responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{position:"top", labels:{boxWidth:12, padding:16, font:{size:12}}}, tooltip:{callbacks:{label:c=>` ${c.dataset.label}: ${fmt(c.raw)}`}}},
+      scales:{x:{grid:{display:false}}, y:{grid:{color:"rgba(46,51,72,0.5)"}, ticks:{callback:v=>fmt(v)}}}
+    }
+  });
+
+  // Trend line
+  makeChart("c-trend", {
+    type: "line",
+    data: {
+      labels: d.monthly.labels,
+      datasets: [
+        { label:"Revenue", data: d.monthly.sales, borderColor: "#6c63ff", backgroundColor: "rgba(108,99,255,0.1)", tension:0.4, fill:true, pointRadius:4, pointBackgroundColor:"#6c63ff" },
+        { label:"Profit", data: d.monthly.profit, borderColor: "#00d4aa", backgroundColor: "rgba(0,212,170,0.08)", tension:0.4, fill:true, pointRadius:4, pointBackgroundColor:"#00d4aa" },
+      ]
+    },
+    options: { responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{position:"top", labels:{boxWidth:12, padding:12, font:{size:12}}}, tooltip:{callbacks:{label:c=>` ${c.dataset.label}: ${fmt(c.raw)}`}}},
+      scales:{x:{grid:{display:false}}, y:{grid:{color:"rgba(46,51,72,0.5)"}, ticks:{callback:v=>fmt(v)}}}
+    }
+  });
+
+  // Category donut
+  makeChart("c-category", {
+    type: "doughnut",
+    data: {
+      labels: d.category.labels,
+      datasets:[{ data: d.category.sales, backgroundColor: COLS.cat, borderColor: "#1a1d27", borderWidth: 3, hoverOffset: 6 }]
+    },
+    options: { responsive:true, maintainAspectRatio:false, cutout:"72%",
+      plugins:{ legend:{display:false}, tooltip:{callbacks:{label:c=>` ${c.label}: ${fmt(c.raw)}`}}}
+    }
+  });
+  const catLeg = document.getElementById("cat-legend");
+  catLeg.innerHTML = d.category.labels.map((l,i)=>`<div class="legend-item"><div class="legend-dot" style="background:${COLS.cat[i]}"></div>${l}</div>`).join("");
+
+  // Region bar
+  makeChart("c-region", {
+    type: "bar",
+    data: {
+      labels: d.region.labels,
+      datasets:[
+        { label:"Revenue", data: d.region.sales, backgroundColor: ["#6c63ff","#00d4aa","#ffa726"], borderRadius:6 },
+      ]
+    },
+    options: { responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false}, tooltip:{callbacks:{label:c=>` ${fmt(c.raw)}`}}},
+      scales:{x:{grid:{display:false}}, y:{grid:{color:"rgba(46,51,72,0.5)"}, ticks:{callback:v=>fmt(v)}}}
+    }
+  });
+
+  // City horizontal bar
+  makeChart("c-city", {
+    type: "bar",
+    data: {
+      labels: d.city.labels,
+      datasets:[{ label:"Revenue", data: d.city.sales, backgroundColor: COLS.city, borderRadius:6 }]
+    },
+    options: { indexAxis:"y", responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false}, tooltip:{callbacks:{label:c=>` ${fmt(c.raw)}`}}},
+      scales:{x:{grid:{color:"rgba(46,51,72,0.5)"}, ticks:{callback:v=>fmt(v)}}, y:{grid:{display:false}}}
+    }
+  });
+
+  // Payment donut
+  makeChart("c-payment", {
+    type: "doughnut",
+    data: {
+      labels: d.payment.labels,
+      datasets:[{ data: d.payment.orders, backgroundColor: COLS.pay, borderColor:"#1a1d27", borderWidth:3, hoverOffset:5 }]
+    },
+    options: { responsive:true, maintainAspectRatio:false, cutout:"65%",
+      plugins:{ legend:{position:"bottom", labels:{boxWidth:10, padding:10, font:{size:11}}}, tooltip:{callbacks:{label:c=>` ${c.label}: ${c.raw} orders`}}}
+    }
+  });
+
+  // Products horizontal bar
+  makeChart("c-products", {
+    type: "bar",
+    data: {
+      labels: d.products.labels,
+      datasets:[{ label:"Revenue", data: d.products.sales, backgroundColor: ["#6c63ff","#a78bfa","#00d4aa","#38d9a9","#ffa726","#ffd43b","#ff6584","#ff8fa3","#74c0fc"], borderRadius:5 }]
+    },
+    options: { indexAxis:"y", responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false}, tooltip:{callbacks:{label:c=>` ${fmt(c.raw)}`}}},
+      scales:{x:{grid:{color:"rgba(46,51,72,0.5)"}, ticks:{callback:v=>fmt(v)}}, y:{grid:{display:false}, ticks:{font:{size:11}}}}
+    }
+  });
+
+  // Discount bar
+  makeChart("c-discount", {
+    type: "bar",
+    data: {
+      labels: d.discount.labels,
+      datasets:[{ label:"Orders", data: d.discount.orders, backgroundColor: ["#6c63ff","#00d4aa","#ffa726","#ff6584"], borderRadius:6 }]
+    },
+    options: { responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false}, tooltip:{callbacks:{label:c=>` ${c.raw} orders`}}},
+      scales:{x:{grid:{display:false}}, y:{grid:{color:"rgba(46,51,72,0.5)"}}}
+    }
+  });
+
+  // Sales rep bars
+  renderRepBars(d.rep);
+}
+
+function renderRepBars(rep) {
+  const maxSales = Math.max(...rep.sales);
+  const el = document.getElementById("rep-bars");
+  el.innerHTML = rep.labels.map((name,i) => {
+    const pct = ((rep.sales[i]/maxSales)*100).toFixed(1);
+    const margin = ((rep.profit[i]/rep.sales[i])*100).toFixed(1);
+    const rank = i+1;
+    const rankClass = rank<=3 ? `rank-${rank}` : "";
+    return `
+      <div class="progress-row">
+        <div class="progress-header">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span class="rank ${rankClass}">${rank}</span>
+            <span class="progress-label">${name}</span>
+            <span style="font-size:11px;color:var(--muted)">${rep.orders[i]} orders · ${margin}% margin</span>
+          </div>
+          <span class="progress-val">${fmt(rep.sales[i])}</span>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" style="width:${pct}%;background:${COLS.rep[i]}"></div>
+        </div>
+      </div>`;
+  }).join("");
+}
+
+function renderTable(data) {
+  const sorted = [...data].sort((a,b)=>b.d.localeCompare(a.d)).slice(0,10);
+  const tb = document.getElementById("tx-table");
+  const catClass = {Electronics:"tag-elec",Furniture:"tag-furn",Clothing:"tag-clot"};
+  tb.innerHTML = sorted.map(r => `
+    <tr>
+      <td style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted)">#${r.o}</td>
+      <td>${r.d.slice(5)}</td>
+      <td>${r.cust}</td>
+      <td><span class="tag ${catClass[r.cat]||''}">${r.cat}</span></td>
+      <td>${r.city}</td>
+      <td>${r.rep}</td>
+      <td style="font-family:'JetBrains Mono',monospace;font-weight:600">${fmt(r.sales)}</td>
+      <td style="font-family:'JetBrains Mono',monospace;color:var(--green)">${fmt(r.profit)}</td>
+    </tr>
+  `).join("");
+}
+
+function updateKPIs(data, totalOrders, totalUnits) {
+  const totalSales = data.reduce((s,r)=>s+r.sales, 0);
+  const totalProfit = data.reduce((s,r)=>s+r.profit, 0);
+  const margin = ((totalProfit/totalSales)*100).toFixed(1);
+  const avgOrder = totalSales/totalOrders;
+  const avgUnits = totalUnits/totalOrders;
+
+  document.getElementById("kpi-sales").textContent = fmt(totalSales);
+  document.getElementById("kpi-profit").textContent = fmt(totalProfit);
+  document.getElementById("kpi-orders").textContent = totalOrders.toLocaleString();
+  document.getElementById("kpi-units").textContent = totalUnits.toLocaleString();
+  document.getElementById("kpi-margin-badge").textContent = margin + "% margin";
+  document.getElementById("kpi-orders-sub").textContent = fmt(avgOrder) + " avg order value";
+  document.getElementById("kpi-units-sub").textContent = avgUnits.toFixed(1) + " avg units/order";
+  document.getElementById("table-count").textContent = `Showing ${Math.min(10,data.length)} of ${totalOrders}`;
+}
+
+// FILTER LOGIC
+function applyFilters() {
+  const fMonth = document.getElementById("f-month").value;
+  const fCat = document.getElementById("f-category").value;
+  const fRegion = document.getElementById("f-region").value;
+  const fRep = document.getElementById("f-rep").value;
+  const fCity = document.getElementById("f-city").value;
+
+  const activeFilters = [fMonth,fCat,fRegion,fRep,fCity].filter(Boolean).length;
+  document.getElementById("filter-count").textContent = activeFilters ? `${activeFilters} filter${activeFilters>1?"s":""} active` : "";
+
+  // Use full data if no RAW subset available — work from aggregated
+  if (!fMonth && !fCat && !fRegion && !fRep && !fCity) {
+    // Show full dataset
+    updateKPIs(RAW, FULL.totalOrders, FULL.totalUnits);
+    initCharts(FULL);
+    renderTable(RAW);
+    return;
+  }
+
+  // Filter the RAW sample (first 30 rows) for table
+  let filtered = RAW.filter(r => {
+    if (fMonth && !r.d.startsWith(fMonth)) return false;
+    if (fCat && r.cat !== fCat) return false;
+    if (fRegion && r.region !== fRegion) return false;
+    if (fRep && r.rep !== fRep) return false;
+    if (fCity && r.city !== fCity) return false;
+    return true;
+  });
+
+  // Compute filtered aggregates from FULL
+  const d = buildFilteredData(fMonth, fCat, fRegion, fRep, fCity);
+  updateKPIs(filtered.length ? filtered : [{sales:d.totalSales, profit:d.totalProfit}], d.totalOrders, d.totalUnits);
+  initCharts(d);
+  renderTable(filtered);
+}
+
+function buildFilteredData(fMonth, fCat, fRegion, fRep, fCity) {
+  // Build filtered versions from FULL aggregations
+  const d = JSON.parse(JSON.stringify(FULL));
+
+  // Filter monthly
+  if (fMonth) {
+    const mi = FULL.monthly.keys.indexOf(fMonth);
+    d.monthly = {
+      labels: [FULL.monthly.labels[mi]],
+      keys: [fMonth],
+      sales: [FULL.monthly.sales[mi]],
+      profit: [FULL.monthly.profit[mi]],
+      orders: [FULL.monthly.orders[mi]],
+      catCloth:[FULL.monthly.catCloth[mi]],
+      catElec:[FULL.monthly.catElec[mi]],
+      catFurn:[FULL.monthly.catFurn[mi]],
+    };
+    d.totalSales = FULL.monthly.sales[mi];
+    d.totalProfit = FULL.monthly.profit[mi];
+    d.totalOrders = FULL.monthly.orders[mi];
+    d.totalUnits = Math.round(FULL.totalUnits * FULL.monthly.sales[mi] / FULL.totalSales);
+  }
+
+  if (fCat) {
+    const ci = FULL.category.labels.indexOf(fCat);
+    d.category = { labels:[fCat], sales:[FULL.category.sales[ci]], profit:[FULL.category.profit[ci]], orders:[FULL.category.orders[ci]] };
+    if (!fMonth) {
+      d.totalSales = FULL.category.sales[ci];
+      d.totalProfit = FULL.category.profit[ci];
+      d.totalOrders = FULL.category.orders[ci];
+    }
+    d.monthly = {
+      labels: FULL.monthly.labels, keys: FULL.monthly.keys,
+      sales: fCat==="Electronics" ? FULL.monthly.catElec : fCat==="Furniture" ? FULL.monthly.catFurn : FULL.monthly.catCloth,
+      profit: (fCat==="Electronics" ? FULL.monthly.catElec : fCat==="Furniture" ? FULL.monthly.catFurn : FULL.monthly.catCloth).map(v=>v*0.2),
+      orders: FULL.monthly.orders,
+      catCloth: fCat==="Clothing" ? FULL.monthly.catCloth : new Array(12).fill(0),
+      catElec: fCat==="Electronics" ? FULL.monthly.catElec : new Array(12).fill(0),
+      catFurn: fCat==="Furniture" ? FULL.monthly.catFurn : new Array(12).fill(0),
+    };
+  }
+
+  if (fRegion) {
+    const ri = FULL.region.labels.indexOf(fRegion);
+    d.region = { labels:[fRegion], sales:[FULL.region.sales[ri]], profit:[FULL.region.profit[ri]] };
+    if (!fMonth && !fCat) {
+      d.totalSales = FULL.region.sales[ri];
+      d.totalProfit = FULL.region.profit[ri];
+    }
+  }
+
+  return d;
+}
+
+function resetFilters() {
+  ["f-month","f-category","f-region","f-rep","f-city"].forEach(id=>document.getElementById(id).value="");
+  document.getElementById("filter-count").textContent = "";
+  updateKPIs(RAW, FULL.totalOrders, FULL.totalUnits);
+  initCharts(FULL);
+  renderTable(RAW);
+}
+
+// INIT
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("last-updated").textContent = "Updated: " + new Date().toLocaleDateString("en-IN",{day:"2-digit",month:"short",year:"numeric"});
+  updateKPIs(RAW, FULL.totalOrders, FULL.totalUnits);
+  initCharts(FULL);
+  renderTable(RAW);
+});
+</script>
+</body>
+</html>
