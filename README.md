@@ -2,61 +2,64 @@
 Interactive sales data analytics platform tracking regional KPIs, growth trends, and pipeline metrics.
 # Enterprise Sales Intelligence Dashboard
 
-An interactive executive BI dashboard and reporting engine built with a zero-server footprint using Tailwind CSS, Chart.js, and an optimized CSV parsing engine.
+# 📊 Sales Analytics Dashboard (FY 2025)
 
-To launch the system, simply open **`index.html`** in any modern web browser.
-
----
-
-## 📊 Cross-Platform Formula Matrix
-
-Use these matching formulas to sync data rules and metric calculations across your other enterprise tech stacks:
-
-### 1. Total Revenue
-* **Python (Pandas):** `total_revenue = df['Total_Sales'].sum()`
-* **Power BI (DAX):** `Total Revenue = SUM(Sales[Total_Sales])`
-* **SQL:** `SELECT SUM(Total_Sales) AS Total_Revenue FROM Sales;`
-* **Excel:** `=SUM(K:K)` *(Assumes Total_Sales is in Column K)*
-
-### 2. Net Profit Margin
-* **Python (Pandas):** `net_profit_margin = (df['Profit'].sum() / df['Total_Sales'].sum()) * 100`
-* **Power BI (DAX):** `Net Profit Margin = DIVIDE(SUM(Sales[Profit]), SUM(Sales[Total_Sales]), 0)`
-* **SQL:** `SELECT (SUM(Profit) / SUM(Total_Sales)) * 100 AS Net_Profit_Margin_Pct FROM Sales;`
-* **Excel:** `=SUM(N:N)/SUM(K:K)` *(Assumes Profit is in Col N and Total_Sales is in Col K; format cell as %)*
-
-### 3. Average Order Value (AOV)
-* **Python (Pandas):** `aov = df['Total_Sales'].mean()`
-* **Power BI (DAX):** `AOV = DIVIDE(SUM(Sales[Total_Sales]), DISTINCTCOUNT(Sales[Order_ID]), 0)`
-* **SQL:** `SELECT AVG(Total_Sales) AS Average_Order_Value FROM Sales;`
-* **Excel:** `=AVERAGE(K:K)`
+A high-performance, responsive, dark-themed **Sales Analytics Dashboard** built for tracking **India Operations** across multiple regions, categories, and sales representatives. This dashboard replicates the analytical capacity of enterprise Power BI architectures using a lightweight, native web stack backed by a pre-computed data engineering pipeline.
 
 ---
 
-## 🗺️ Data Schema Requirements
+## 🚀 Live Features
 
-If uploading a custom dataset using the **📁 Upload Data CSV** option, format your CSV file with these exact column headers:
-
-| Column Name | Data Type | Example Value |
-| :--- | :--- | :--- |
-| `Order_ID` | String / Int | `1001` |
-| `Order_Date` | Date (`YYYY-MM-DD`) | `2026-01-15` |
-| `Customer_Name` | String | `Acme Corp` |
-| `City` | String | `New York` |
-| `Region` | String | `East` |
-| `Product_Category` | String | `Technology` |
-| `Product_Name` | String | `Cloud Server Pro` |
-| `Sales_Rep` | String | `Alice` |
-| `Units_Sold` | Integer | `5` |
-| `Unit_Price` | Numeric | `500` |
-| `Total_Sales` | Numeric | `2500` |
-| `Payment_Method` | String | `Credit Card` |
-| `Discount_%` | Numeric | `10` |
-| `Profit` | Numeric | `600` |
+* **Slicer / Filter Simulation:** Dynamic filtering across 5 core dimensions: Month, Category, Region, Sales Representative, and City.
+* **KPI Scorecards:** Top-level metrics calculating Total Revenue, Total Profit, Profit Margin %, Total Orders, and Units Sold dynamically.
+* **Deep-Dive Visualization Matrix:**
+    * *Monthly Revenue by Category:* Stacked Bar chart tracking continuous performance.
+    * *Revenue vs Profit Trend:* Line chart assessing margin health over time.
+    * *Category Mix & Payment Methods:* High-fidelity breakdown via interactive Donut/Doughnut charts.
+    * *Geographic & Product Tracking:* Sorted cross-filtering horizontal bar charts.
+    * *Sales Rep Leaderboard:* Visual progress bars mapping ranking, volume, and individual margins.
+* **Granular Transaction Log:** Interactive ledger revealing real-time table modifications based on user criteria.
 
 ---
 
-## 🚀 Quick Start
+## 🛠️ Data Pipeline & Architecture
 
-1. **Clone the repository:**
-   ```bash
-   git clone <your-repo-url>
+To populate the pre-computed telemetry (`const FULL`) inside the application, an end-to-end data processing workflow was implemented from raw corporate transactional records.
+### 1. Excel Prototyping & Formula Verification
+Before scaling data into code, initial mockups, baseline verification, and logical sanity checks were calculated in Excel using complex matrix formulas:
+* **Average Order Value Baseline:**
+  ```excel
+  =SUM(G2:G1288) / COUNTA(A2:A1288)
+  =SUMIFS(Sales_Amount, Category_Range, "Electronics", Region_Range, "South")
+  =IFERROR((Profit_Amount / Sales_Amount), 0)
+  SQL
+  SELECT 
+    DATE_FORMAT(order_date, '%Y-%m') AS month_key,
+    category,
+    SUM(units_sold * unit_price) AS raw_sales,
+    SUM(sales_amount) AS final_revenue,
+    SUM(profit) AS net_profit,
+    COUNT(DISTINCT order_id) AS total_orders
+FROM sales_master
+WHERE FY = '2025'
+GROUP BY 1, 2
+ORDER BY 1 ASC;
+Python
+import pandas as pd
+import json
+
+df = pd.read_csv("sales_data_2025.csv")
+
+# Pre-aggregating high-performance data structures for ChartJS
+full_aggregates = {
+    "totalSales": float(df["sales"].sum()),
+    "totalProfit": float(df["profit"].sum()),
+    "totalOrders": int(df["o"].nunique()),
+    "category": {
+        "labels": df.groupby("cat")["sales"].sum().index.tolist(),
+        "sales": df.groupby("cat")["sales"].sum().values.tolist(),
+        "profit": df.groupby("cat")["profit"].sum().values.tolist()
+    }
+}
+print(json.dumps(full_aggregates, indent=2))
+
